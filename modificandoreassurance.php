@@ -324,7 +324,32 @@ class Modificandoreassurance extends Module implements WidgetInterface
         //$id_product = Tools::getValue('price');
         $price = Product::getPriceStatic(Tools::getValue('id_product'), true, null, 2);
         $priceWithouthDiscount = Product::getPriceStatic(Tools::getValue('id_product'), true, null, 2);
-        $product = new Product($id_product, false, $this->context->language->id, 2);
+        $product = new Product($id_product, false, $this->context->language->id);
+        /* Como obtener los taxes */
+        $taxes = Tax::getTaxes();
+        /* Como obtener el grupo de taxes*/
+        $groupTaxes = TaxRulesGroup::getTaxRulesGroupsForOptions();
+        /*Así extraigo el grupo de taxes */
+        $product->id_tax_rules_group;
+        /*Lo que paso a retrieveById está mal...
+        Sin embargo esta función me devuelve toda la información alrededor de una regla de impuesto
+        Array ( 
+            [id_tax_rule] => 1 
+            [id_tax_rules_group] => 1 
+            [id_country] => 3 
+            [id_state] => 0 
+            [zipcode_from] => 0 
+            [zipcode_to] => 0 
+            [id_tax] => 1 
+            [behavior] => 0 
+            [description] => )
+        
+        */
+        $retrieve = TaxRule::retrieveById($product->id_tax_rules_group);
+        /*Si le paso el id de un producto, me devuelte el tipo impositivo que aplica sobre el*/
+        $getTaxes = Tax::getProductTaxRate(Tools::getValue('id_product'));
+        
+        
 
         $elements = [];
         $elements[1]['type_link'] = "";
@@ -332,21 +357,34 @@ class Modificandoreassurance extends Module implements WidgetInterface
         $elements[1]['icon'] = "";
         //$elements[1]['title'] = "HOLA MUNDO, el precio es: " . $product->price;
         //$elements[1]['title'] = "HOLA MUNDO, el precio es: " . print_r($product);
+        //$elements[1]['title'] = "HOLA MUNDO, el precio es: <pre>" . print_r($taxes) . "</pre>";
+        //$elements[1]['title'] = "HOLA MUNDO, el precio es: <pre>" . print_r($groupTaxes) . "</pre>";
         $elements[1]['title'] = "HOLA MUNDO, el precio es: " . $price;
+        //$elements[1]['title'] = "HOLA MUNDO, el precio es: " . $product->id_tax_rules_group;
+        //$elements[1]['title'] = "HOLA MUNDO, el precio es: " . print_r($retrieve);
+        //$elements[1]['title'] = "HOLA MUNDO, el precio es: " . print_r($getTaxes);
         $elements[1]['description'] = "HOLA A TODO EL MUNDO";
 
+        
+
         $precio = $product->price;
+        $precioConTax = $this->calculatePriceWithTax($precio, $getTaxes);
+        $obtainDiscountAbsolute = $this->obtainDiscount($price, $precioConTax);
+
         $unArray["has_discount"] = true;
         $unArray["regular_price"] = $priceWithouthDiscount;
         $this->context->smarty->assign([
+            'precioConTax' => $precioConTax,
             'product' => $product,
+            'taxRule' => $getTaxes,
             'precio' => $priceWithouthDiscount,
             'productHasDiscount' => $unArray["has_discount"], 
             'productShowPrice' => true, 
-            'productRegularPrice' => $unArray["regular_price"],
+            //'productRegularPrice' => $unArray["regular_price"],
+            'productRegularPrice' => $precioConTax,
             'productPrice' => $price,
             'productDiscountType' => 'percentage',
-            'productDiscountPercentageAbsolute' => "20",
+            'productDiscountPercentageAbsolute' => $obtainDiscountAbsolute,
             'blocks' => $elements,
             'iconColor' => "",
             'textColor' => '#00ff00',
@@ -357,6 +395,15 @@ class Modificandoreassurance extends Module implements WidgetInterface
         ]);
 
         return $this->context->smarty->display(dirname(__FILE__). '/views/templates/hook/' . $template);
+    }
+
+    private function calculatePriceWithTax($precio, $getTaxes)
+    {
+        return round($precio*(1+($getTaxes/100)), 2);
+    }
+
+    private function obtainDiscount($price, $priceWithTax){
+        return round(100*(1-($price/$priceWithTax)), 2);
     }
 
     /**

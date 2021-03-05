@@ -23,6 +23,12 @@
         </div>
     {/foreach}
     {include file='./pruebas.tpl' title='helou'}
+    <div>
+        <p>El precio sin discount es: {$taxRule}</p>
+    </div>
+    <div>
+        <p>El precio CON TAX es: {$precioConTax}</p>
+    </div>
     <p>Holaaa {$productHasDiscount}</p>
     <p>El precio es {$precio}</p>
     {include file='./displayProductPriceBlockModificado.tpl' productHasDiscount=$productHasDiscount productShowPrice=$productShowPrice productRegularPrice=$productRegularPrice productPrice=$productPrice productDiscountType=$productDiscountType productDiscountPercentageAbsolute=$productDiscountPercentageAbsolute}
