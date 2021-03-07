@@ -80,7 +80,8 @@ class Modificandoreassurance extends Module implements WidgetInterface
             $this->registerHook('header') &&
             $this->registerHook('backOfficeHeader') &&
             $this->registerHook('displayReassurance') &&
-            $this->registerHook('displayProductPriceBlock');
+            $this->registerHook('displayProductPriceBlock') &&
+            $this->registerHook('displayProductListFunctionalButtons');
     }
 
     public function uninstall()
@@ -449,5 +450,20 @@ class Modificandoreassurance extends Module implements WidgetInterface
 
             return $this->context->smarty->display(__FILE__, '/views/templates/hook/displayProductPriceBlockModificado.tpl');
         }
+    }
+
+    public function hookdisplayProductListFunctionalButtons(){
+
+        /** Solo pinte el TPL si el precio es mayor es X */
+        /**
+         * 1º. Sacar el id del producto
+         * 2º. Sacar el precio del producto
+         * 3º. Una función que compruebe si el precio supera y devolver HEX color rojo radiactivo
+         */
+        /*
+        Tarea gorda
+        Crear un controlador del modulo (fron) de forma que yo pueda acceder a una página generada por el modulo
+        */
+        $this->context->smarty->display(dirname(__FILE__). '/views/templates/hook/ejemplohook_displayProductListFunctionalButtons.tpl');
     }
 }
